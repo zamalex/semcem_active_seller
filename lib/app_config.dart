@@ -23,7 +23,7 @@ class AppConfig {
   //configure this
   //localhost
   static const bool HTTPS = true;
-  static const DOMAIN_PATH = "semcem.com";
+  static const DOMAIN_PATH = "dev.semcem.com";
 
   //do not configure these below
   static const String API_ENDPATH = "api/v2";

@@ -19,11 +19,13 @@ class AuthRepository {
     required String confirmPassword,
     required String shopName,
     required String address,
+    required String phone,
     // required String capchaKey,
   }) async {
     var post_body = jsonEncode({
       "name": name,
       "email": email,
+      "phone": phone,
       "password": password,
       "password_confirmation": confirmPassword,
       "shop_name": shopName,

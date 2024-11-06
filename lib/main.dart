@@ -19,6 +19,7 @@ import 'app_config.dart';
 import 'helpers/push_notification_service.dart';
 import 'other_config.dart';
 
+
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

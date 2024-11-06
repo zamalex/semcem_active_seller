@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:active_ecommerce_seller_app/helpers/aiz_api_response.dart';
 import 'package:active_ecommerce_seller_app/helpers/main_helper.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
@@ -19,7 +21,7 @@ class ApiRequest {
     }
     var response = await http.get(uri, headers: headerMap);
     debugPrint('request ${url}');
-    debugPrint('response ${response.body.toString()}');
+    log('response ${response.body.toString()}');
 
     return AIZApiResponse.check(response,
         middleware: middleware, groupMiddleWare: groupMiddleWare);
@@ -39,7 +41,7 @@ class ApiRequest {
     var response = await http.post(uri, headers: headerMap, body: body);
     debugPrint('request ${url}');
     debugPrint('request body  ${body.toString()}');
-    debugPrint('response ${response.body.toString()}');
+    log('response ${response.body.toString()}');
     return AIZApiResponse.check(response,
         middleware: middleware, groupMiddleWare: groupMiddleWare);
   }

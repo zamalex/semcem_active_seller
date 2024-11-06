@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:active_ecommerce_seller_app/api_request.dart';
 import 'package:active_ecommerce_seller_app/app_config.dart';
@@ -16,14 +17,14 @@ class BusinessSettingRepository {
       "product_query_activation",
       "shipping_type",
       "pos_activation_for_seller",
-      "google_firebase"
+      "google_firebase",
+      "seller_manage_product_currency",
     ];
     String params = businessSettings.join(',');
     var body = {"keys": params};
     // print("business ${body}");
     var response = await ApiRequest.post(url: url, body: jsonEncode(body));
 
-    // print("business ${response.body}");
 
     return businessSettingListResponseFromJson(response.body);
   }

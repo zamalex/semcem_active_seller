@@ -19,6 +19,16 @@ class BusinessSettingHelper {
             }
           }
           break;
+
+        case 'seller_manage_product_currency':
+          {
+            if (element.value.toString() == "1") {
+              seller_manage_product_currency.$ = true;
+            } else {
+              seller_manage_product_currency.$ = false;
+            }
+          }
+          break;
         case 'product_query_activation':
           {
             if (element.value.toString() == "1") {

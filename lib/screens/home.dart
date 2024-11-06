@@ -16,7 +16,7 @@ import 'package:active_ecommerce_seller_app/screens/payment_setting.dart';
 import 'package:active_ecommerce_seller_app/screens/shop_settings/shop_settings.dart';
 import 'package:active_ecommerce_seller_app/screens/verify_page.dart';
 import 'package:flutter/material.dart';
-import 'package:new_version_plus/new_version_plus.dart';
+//import 'package:new_version_plus/new_version_plus.dart';
 import '../custom/chart2.dart';
 
 class Home extends StatefulWidget {
@@ -128,9 +128,9 @@ class _HomeState extends State<Home> {
     super.initState();
     checkUpdate();
   }
-  final newVersionPlus = NewVersionPlus();
+ // final newVersionPlus = NewVersionPlus();
   checkUpdate() async{
-    final status = await newVersionPlus.getVersionStatus();
+   /* final status = await newVersionPlus.getVersionStatus();
     if(status!=null){
       print('can update ${status!.canUpdate.toString()}'); // (true)
       print('local version ${status!.localVersion.toString()}'); // (true)
@@ -142,7 +142,7 @@ class _HomeState extends State<Home> {
           (value) {
         newVersionPlus.showAlertIfNecessary(context: context);
       },
-    );
+    );*/
   }
   @override
   Widget build(BuildContext context) {

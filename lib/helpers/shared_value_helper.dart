@@ -83,6 +83,11 @@ final SharedValue<bool> conversation_activation = SharedValue(
   value: false, // initial value
   key: "conversation_activation", // disk storage key for shared_preferences
 );
+
+final SharedValue<bool> seller_manage_product_currency = SharedValue(
+  value: false, // initial value
+  key: "seller_manage_product_currency", // disk storage key for shared_preferences
+);
 final SharedValue<bool> coupon_activation = SharedValue(
   value: false, // initial value
   key: "coupon_activation", // disk storage key for shared_preferences

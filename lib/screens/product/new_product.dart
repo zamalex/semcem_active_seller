@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:active_ecommerce_seller_app/const/app_style.dart';
 import 'package:active_ecommerce_seller_app/const/dropdown_models.dart';
@@ -14,6 +15,7 @@ import 'package:active_ecommerce_seller_app/custom/localization.dart';
 import 'package:active_ecommerce_seller_app/custom/multi_category_section.dart';
 import 'package:active_ecommerce_seller_app/custom/my_widget.dart';
 import 'package:active_ecommerce_seller_app/custom/toast_component.dart';
+import 'package:active_ecommerce_seller_app/data_model/country_response.dart';
 import 'package:active_ecommerce_seller_app/data_model/product/attribut_model.dart';
 import 'package:active_ecommerce_seller_app/data_model/product/category_view_model.dart';
 import 'package:active_ecommerce_seller_app/data_model/product/custom_radio_model.dart';
@@ -21,13 +23,18 @@ import 'package:active_ecommerce_seller_app/data_model/product/vat_tax_model.dar
 import 'package:active_ecommerce_seller_app/data_model/uploaded_file_list_response.dart';
 import 'package:active_ecommerce_seller_app/helpers/main_helper.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
+import 'package:active_ecommerce_seller_app/main.dart';
 import 'package:active_ecommerce_seller_app/my_theme.dart';
+import 'package:active_ecommerce_seller_app/repositories/address_repository.dart';
 import 'package:active_ecommerce_seller_app/repositories/product_repository.dart';
 import 'package:active_ecommerce_seller_app/screens/uploads/upload_file.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:one_context/one_context.dart';
 import 'package:toast/toast.dart';
 
@@ -42,6 +49,8 @@ class NewProduct extends StatefulWidget {
 
 class _NewProductState extends State<NewProduct> {
   // double variables
+
+  List<Country> selectedCountries = [];
 
   String _statAndEndTime = "Select Date";
 
@@ -162,6 +171,9 @@ class _NewProductState extends State<NewProduct> {
       TextEditingController(text: "0");
   TextEditingController flashDiscountEditTextController =
       TextEditingController();
+
+  Map countryListPrices = {};
+  Map countryListVariantsPrices = {};
   TextEditingController unitPriceEditTextController =
       TextEditingController(text: "0");
   TextEditingController productQuantityEditTextController =
@@ -571,6 +583,9 @@ class _NewProductState extends State<NewProduct> {
   }
 
   submitProduct(String button) async {
+
+    formkey.currentState!.save();
+
     if (!requiredFieldVerification()) {
       return;
     }
@@ -607,6 +622,7 @@ class _NewProductState extends State<NewProduct> {
 
     postValue.addAll({
       "unit_price": unitPrice,
+      "unit_price_countries":seller_manage_product_currency.$?makeCountryPricesMap():null,
       "date_range":
           double.parse(discount!.toString()).toInt() <= 0 ? null : dateRange,
       "discount": discount,
@@ -626,6 +642,7 @@ class _NewProductState extends State<NewProduct> {
     }
 
     postValue.addAll({
+      "countries":seller_manage_product_currency.$?List.generate(selectedCountries.length,(index) => selectedCountries[index].code,):null,
       "description": description,
       "pdf": pdf,
       "meta_title": metaTitle,
@@ -641,7 +658,15 @@ class _NewProductState extends State<NewProduct> {
       "button": button,
     });
 
+    if(seller_manage_product_currency.$) {
+      postValue.addAll(makeCountryVariationMap());
+    }
     var postBody = jsonEncode(postValue);
+
+
+
+    log(postBody.toString());
+
     var response = await ProductRepository().addProductResponse(postBody);
 
     Loading().hide();
@@ -677,6 +702,35 @@ class _NewProductState extends State<NewProduct> {
     return variation;
   }
 
+  Map makeCountryPricesMap() {
+    Map variation = {};
+    selectedCountries.forEach((element) {
+      countryListPrices.forEach((key, value) {
+        if(element.code==key){
+          variation[key] = value;
+        }
+      },);
+    });
+
+    return variation;
+  }
+
+
+  Map makeCountryVariationMap() {
+    Map variation = {};
+    productVariations.forEach((element) {
+      countryListVariantsPrices.forEach((key, value) {
+        if(element.name==key){
+          variation.addAll({'price_by_country_$key':value});
+        }
+      },);
+    });
+
+    return variation;
+  }
+
+
+
   @override
   void initState() {
     fetchAll();
@@ -695,7 +749,9 @@ class _NewProductState extends State<NewProduct> {
           app_language_rtl.$! ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         appBar: buildAppBar(context) as PreferredSizeWidget?,
-        body: SingleChildScrollView(child: buildBodyContainer()),
+        body: Form(
+            key: formkey,
+            child: SingleChildScrollView(child: buildBodyContainer())),
         bottomNavigationBar: buildBottomAppBar(context),
       ),
     );
@@ -774,6 +830,7 @@ class _NewProductState extends State<NewProduct> {
             isMandatory: true,
           ),
           itemSpacer(),
+
           _buildMultiCategory(
               LangText(context: context).getLocal()!.categories_ucf,
               isMandatory: true),
@@ -944,9 +1001,34 @@ class _NewProductState extends State<NewProduct> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+          if(seller_manage_product_currency.$)
+
+            ProductCountries(onDone: (selected){
+            print(selected.toString());
+
+            setState(() {
+              selectedCountries = selected;
+            });
+          },),
+          if(seller_manage_product_currency.$)
+
+            itemSpacer(),
           buildPriceEditTextField(
               LangText(context: context).getLocal()!.unit_price_ucf, "0"),
+
           itemSpacer(),
+
+          if(seller_manage_product_currency.$)
+
+            Column(
+            children:   List.generate(selectedCountries.length, (index) => buildCountryPriceEditTextField('${selectedCountries[index].name} price','0',index: index),),
+
+          ),
+          if(seller_manage_product_currency.$)
+
+            itemSpacer(),
+
           buildGroupItems(
               LangText(context: context).getLocal()!.discount_date_range_ucf,
               Container(
@@ -2400,6 +2482,38 @@ class _NewProductState extends State<NewProduct> {
     );
   }
 
+
+  Widget buildCountryPriceEditTextField(String title, String hint,
+      {isMandatory = false,required int index}) {
+    return Container(
+      child: buildCommonSingleField(
+        title,
+        MyWidget.customCardView(
+          backgroundColor: MyTheme.white,
+          elevation: 5,
+          width: DeviceInfo(context).getWidth(),
+          height: 46,
+          borderRadius: 10,
+          child: TextFormField(
+            controller: TextEditingController(text: '0'),
+            onSaved: (string) {
+              countryListPrices[selectedCountries[index].code] = string;
+              createProductVariation();
+
+
+              },
+            keyboardType: TextInputType.number,
+            decoration: InputDecorations.buildInputDecoration_1(
+                hint_text: hint,
+                borderColor: MyTheme.noColor,
+                hintTextColor: MyTheme.grey_153),
+          ),
+        ),
+        isMandatory: isMandatory,
+      ),
+    );
+  }
+
   Widget buildFlatEditTextField(
       String title, String hint, TextEditingController textEditingController,
       {isMandatory = false}) {
@@ -2449,6 +2563,8 @@ class _NewProductState extends State<NewProduct> {
     );
   }
 
+  final formkey = GlobalKey<FormState>();
+
   Text buildFieldTitle(title) {
     return Text(
       title,
@@ -2466,11 +2582,11 @@ class _NewProductState extends State<NewProduct> {
 
   buildExpansionTile(int index, dynamic onExpand, isExpanded) {
     return Container(
-      height: isExpanded
+   /*   height: (isExpanded
           ? productVariations[index].photo == null
               ? 274
               : 334
-          : 100,
+          : 100)*(selectedCountries.length.toDouble()),*/
       decoration: MDecoration.decoration1(),
       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Column(
@@ -2514,20 +2630,59 @@ class _NewProductState extends State<NewProduct> {
                           style: MyTextStyle.smallFontSize()
                               .copyWith(color: MyTheme.font_grey),
                         )),
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: MyTheme.app_accent_color_extra_light),
-                      width: (mWidht / 3),
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller:
-                            productVariations[index].priceEditTextController,
-                        decoration: InputDecorations.buildInputDecoration_1(
-                            hint_text: "0",
-                            borderColor: MyTheme.noColor,
-                            hintTextColor: MyTheme.grey_153),
-                      ),
+                    Column(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('default price'),
+
+                            Container(
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: MyTheme.app_accent_color_extra_light),
+                              width: (mWidht / 3),
+                              child: TextField(
+                                keyboardType: TextInputType.number,
+                                controller:
+                                    productVariations[index].priceEditTextController,
+                                decoration: InputDecorations.buildInputDecoration_1(
+                                    hint_text: "0",
+                                    borderColor: MyTheme.noColor,
+                                    hintTextColor: MyTheme.grey_153),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        if(seller_manage_product_currency.$)
+                        Column(children:List.generate(selectedCountries.length, (ii) =>      Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${selectedCountries[ii].name} price'),
+                            Container(
+                              margin: EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: MyTheme.app_accent_color_extra_light),
+                              width: (mWidht / 3),
+                              child: TextFormField(
+                                controller: TextEditingController(text: '0'),
+                                onSaved: (newValue) {
+                                  countryListVariantsPrices.putIfAbsent(productVariations[index].name!,() => {},);
+                                  countryListVariantsPrices[productVariations[index].name!][selectedCountries[ii].code]=newValue;
+
+                                },
+
+                                keyboardType: TextInputType.number,
+                             decoration: InputDecorations.buildInputDecoration_1(
+                                    hint_text: selectedCountries[ii].name,
+                                    borderColor: MyTheme.noColor,
+                                    hintTextColor: MyTheme.grey_153),
+                              ),
+                            ),
+                          ],
+                        )) )],
                     )
                   ],
                 ),
@@ -2829,5 +2984,60 @@ class MHeight {
 
   set height(double? value) {
     _height = value;
+  }
+}
+
+
+class ProductCountries extends StatefulWidget {
+   ProductCountries({super.key,required this.onDone,this.initial,
+   });
+
+   Function onDone;
+   List<Country>? initial = [];
+
+
+   @override
+  State<ProductCountries> createState() => _ProductCountriesState();
+}
+
+class _ProductCountriesState extends State<ProductCountries> {
+    List<Country> countries = [];
+    List<Country> selected = [];
+
+
+
+    @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    AddressRepository().getCountryList().then((value) {
+      setState(() {
+        countries = (value as CountryResponse).countries??[];
+      });
+    },);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiSelectDialogField(
+
+      buttonText: Text(              LangText(context: context).getLocal()!.country_ucf,),
+      title: Text(LangText(context: context).getLocal()!.country_ucf,),
+      checkColor: Colors.white,
+
+
+      selectedItemsTextStyle: TextStyle(color: Colors.white),
+      selectedColor: MyTheme.app_accent_color,
+      items: countries.map((e) => MultiSelectItem(e, e.name??'')).toList(),
+      listType: MultiSelectListType.CHIP,
+      onConfirm: (values) {
+        selected = (values as List<Country>);
+
+        widget.onDone(selected);
+      },
+      initialValue: widget.initial??List<Country>.empty(),
+
+    );
   }
 }

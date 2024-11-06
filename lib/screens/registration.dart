@@ -41,6 +41,7 @@ class _RegistrationState extends State<Registration> {
   var countries_code = <String>[];
 
   //controllers
+  TextEditingController phoneController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController shopNameController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -52,6 +53,7 @@ class _RegistrationState extends State<Registration> {
   String googleRecaptchaKey = "";
 
   onPressReg() async {
+    String phone = phoneController.text.trim();
     String name = nameController.text.trim();
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
@@ -67,6 +69,7 @@ class _RegistrationState extends State<Registration> {
         confirmPassword: confirmPassword,
         shopName: shopName,
         address: address,
+        phone:phone
         /*capchaKey: googleRecaptchaKey*/);
     Navigator.pop(loadingContext);
 
@@ -142,6 +145,12 @@ class _RegistrationState extends State<Registration> {
                       LangText(context: context).getLocal()!.email_ucf,
                       "seller@example.com",
                       emailController),
+                  spacer(height: 14),
+
+                  inputFieldModel(
+                      LangText(context: context).getLocal()!.phone_ucf,
+                      "20**********",
+                      phoneController,isPhone: true),
                   spacer(height: 14),
                   inputFieldModel(
                       LangText(context: context).getLocal()!.password_ucf,
@@ -261,7 +270,7 @@ class _RegistrationState extends State<Registration> {
 
   Widget inputFieldModel(
       String title, String hint, TextEditingController controller,
-      {bool isPassword = false}) {
+      {bool isPassword = false,bool isPhone= false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
@@ -283,6 +292,7 @@ class _RegistrationState extends State<Registration> {
                 borderRadius: BorderRadius.circular(10),
                 color: const Color.fromRGBO(255, 255, 255, 0.5)),
             child: TextField(
+              keyboardType: isPhone?TextInputType.phone:TextInputType.text,
               style: TextStyle(color: MyTheme.white),
               controller: controller,
               autofocus: false,
